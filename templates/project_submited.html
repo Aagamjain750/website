@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Project Submitted</title>
+<style>
+body { font-family: Arial; background: linear-gradient(to right, #11998e, #38ef7d); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; }
+button { padding: 10px 20px; border-radius: 5px; border: none; background: #38ef7d; color: white; cursor: pointer; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div>
+<h2>Project Submitted Successfully!</h2>
+<p>Language Selected: <strong>{{ language }}</strong></p>
+<a href="{{ url_for('main') }}"><button>Back to Main</button></a>
+</div>
+</body>
+</html>

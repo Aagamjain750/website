@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Project Form</title>
+<style>
+body { font-family: Arial; background: linear-gradient(to right, #ff9966, #ff5e62); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+.container { background: rgba(0,0,0,0.6); padding: 30px; border-radius: 15px; width: 350px; text-align: center; }
+input, select, textarea { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+button { padding: 10px 20px; border-radius: 5px; border: none; background: #ff5e62; color: white; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Project Form</h2>
+<form method="POST">
+<textarea name="project_description" placeholder="Project Description" required></textarea>
+<input type="text" name="phone_number" placeholder="Phone Number" required>
+<input type="text" name="email" placeholder="Email (optional)">
+<select name="language" required>
+<option value="Python">Python</option>
+<option value="C">C</option>
+<option value="Java">Java</option>
+</select>
+<button type="submit">Submit Project</button>
+</form>
+</div>
+</body>
+</html>

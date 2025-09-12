@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+<style>
+body { font-family: Arial; background: linear-gradient(to right, #ff416c, #ff4b2b); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+.container { background: rgba(0,0,0,0.6); padding: 30px; border-radius: 15px; width: 300px; text-align: center; }
+input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+button { padding: 10px 20px; border-radius: 5px; border: none; background: #ff4b2b; color: white; cursor: pointer; }
+.alert { color: yellow; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Login</h2>
+{% if alert %}<div class="alert">{{ alert }}</div>{% endif %}
+<form method="POST">
+<input type="text" name="username" placeholder="Username" required>
+<input type="password" name="password" placeholder="Password" required>
+<button type="submit">Login</button>
+</form>
+<p>Don't have an account? <a href="{{ url_for('signup') }}" style="color: #fff;">Signup</a></p>
+</div>
+</body>
+</html>

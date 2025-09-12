@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Main</title>
+<style>
+body { font-family: Arial; background: linear-gradient(to right, #00c6ff, #0072ff); color: white; text-align: center; padding: 50px; }
+button { padding: 15px 30px; margin: 10px; border-radius: 10px; border: none; background: #0072ff; color: white; cursor: pointer; font-size: 16px; }
+.logout { background: red; }
+</style>
+</head>
+<body>
+<h1>Welcome, {{ username }}!</h1>
+<p>Last selected language: <strong>{{ last_language }}</strong></p>
+<a href="{{ url_for('project_form') }}"><button>Create Project</button></a>
+<a href="{{ url_for('logout') }}"><button class="logout">Logout</button></a>
+</body>
+</html>
