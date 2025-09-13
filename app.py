@@ -1,104 +1,103 @@
-from flask import Flask, render_template, request, redirect, session
-import mysql.connector
+from flask import Flask, render_template, request, redirect, url_for, session
+import sqlite3
+import hashlib
 
 app = Flask(__name__)
-app.secret_key = "mysecret123"  # Tumhare Railway project ka strong secret
+app.secret_key = "your_secret_key"  # Change in production
 
-# ---------- Database Connection (Railway credentials) ----------
-db = mysql.connector.connect(
-    host="mysql.railway.internal",
-    user="root",
-    password="biMDOAICiXVKxOZspePBNrecfgYoUbju",
-    database="project_portal",
-    port=3306
+# ---------- Database Connection ----------
+conn = sqlite3.connect("project_portal.db", check_same_thread=False)
+cursor = conn.cursor()
+
+# Create tables if not exist
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT
 )
-cursor = db.cursor(dictionary=True)
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS project_contacts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_description TEXT,
+    phone_number TEXT,
+    email TEXT,
+    language TEXT,
+    username TEXT
+)
+""")
+conn.commit()
 
-# ---------- Root Route ----------
+# ---------- Helper Functions ----------
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password, hashed):
+    return hash_password(password) == hashed
+
+# ---------- Routes ----------
 @app.route("/")
 def index():
     if "username" in session:
-        return redirect("/main")
-    return redirect("/login")
+        return redirect(url_for("main"))
+    return redirect(url_for("login"))
 
-# ---------- Signup ----------
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-
-        cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
-        if cursor.fetchone():
+        try:
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hash_password(password)))
+            conn.commit()
+            return redirect(url_for("login"))
+        except sqlite3.IntegrityError:
             return render_template("signup.html", alert="⚠️ Username already exists!")
-
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
-        db.commit()
-        return redirect("/login")
-
     return render_template("signup.html")
 
-# ---------- Login ----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-
-        cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username, password))
+        cursor.execute("SELECT password FROM users WHERE username=?", (username,))
         user = cursor.fetchone()
-        if user:
+        if user and verify_password(password, user[0]):
             session["username"] = username
-            return redirect("/main")
+            return redirect(url_for("main"))
         else:
-            return render_template("login.html", alert="⚠️ Invalid username or password!")
-
+            return render_template("login.html", alert="⚠️ Login failed! Invalid username or password.")
     return render_template("login.html")
 
-# ---------- Main Page ----------
 @app.route("/main")
 def main():
     if "username" not in session:
-        return redirect("/login")
-
-    cursor.execute(
-        "SELECT language FROM project_contacts WHERE username=%s ORDER BY id DESC LIMIT 1",
-        (session["username"],)
-    )
+        return redirect(url_for("login"))
+    cursor.execute("SELECT language FROM project_contacts WHERE username=? ORDER BY id DESC LIMIT 1", (session["username"],))
     last = cursor.fetchone()
-    last_language = last["language"] if last else "No language submitted"
+    last_language = last[0] if last else None
     return render_template("main.html", username=session["username"], last_language=last_language)
 
-# ---------- Project Form ----------
 @app.route("/project_form", methods=["GET", "POST"])
 def project_form():
     if "username" not in session:
-        return redirect("/login")
-
+        return redirect(url_for("login"))
     if request.method == "POST":
         project_description = request.form["project_description"]
         phone_number = request.form["phone_number"]
         email = request.form.get("email", "N/A")
         language = request.form["language"]
-
-        cursor.execute(
-            "INSERT INTO project_contacts (project_description, phone_number, email, language, username) "
-            "VALUES (%s, %s, %s, %s, %s)",
-            (project_description, phone_number, email, language, session["username"])
-        )
-        db.commit()
+        cursor.execute("INSERT INTO project_contacts (project_description, phone_number, email, language, username) VALUES (?, ?, ?, ?, ?)",
+                       (project_description, phone_number, email, language, session["username"]))
+        conn.commit()
         return render_template("project_submited.html", language=language)
-
     return render_template("project_form.html")
 
-# ---------- Logout ----------
 @app.route("/logout")
 def logout():
     session.pop("username", None)
-    return redirect("/login")
+    return redirect(url_for("login"))
 
-# ---------- Run App ----------
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(debug=True)
